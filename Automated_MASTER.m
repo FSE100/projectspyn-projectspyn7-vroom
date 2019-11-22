@@ -1,5 +1,6 @@
 %Port B = Left Motor
 %Port D = Right Motor
+%Port C = Pickup Motor
 %Port 1 = Ultrasonic Sensor
 %Port 2 = Color Sensor
 %Port 3 = Left Crash Sensor
@@ -7,33 +8,51 @@
 
 brick.SetColorMode(2, 2);  % Set Color Sensor connected to Port 2 to Color Code Mode
 
-goToDestination(3);
+goToDestination(3); %Green Pickup
 manualControl();
-goToDestination(2);
+goToDestination(4); %Blue Dropoff
 manualControl();
 
 function goToDestination(colorDestination)
     global brick
 	move = true;
-	
+    
+    colorCount = 0;
+    
 	while move
 		crash = brick.TouchPressed(3) == 1 || brick.TouchPressed(4) == 1;
 		%display(crash);
 		color = brick.ColorCode(2);
-        disp(color);
-		distance = brick.UltrasonicDist(1);
-		
-		if color == colorDestination
-			%At pickup or drop-off color completely stop the car and break the loop
-			brick.StopAllMotors('Brake');
-			break;
-		elseif color == 5
+        if color == 2
+            disp("Blue");
+        elseif color == 3
+            disp("Green");
+        elseif color == 4
+            disp("yellow");
+        else
+            disp(color);
+        end
+        
+        if color ~= colorDestination
+            colorCount = 0;
+        end
+        
+        if color == colorDestination
+            colorCount = colorCount + 1;
+            if colorCount > 4
+                brick.StopAllMotors('Brake');
+                break;
+            end
+        elseif color == 5
 			%At red pause the car for 4 seconds
 			brick.StopAllMotors('Brake');
 			pause(4);
             brick.MoveMotor('BD', 50);
             pause(0.5);
 		end
+            
+        %disp(color);
+		distance = brick.UltrasonicDist(1);
 		
 		if crash == 1
 			%turn right
